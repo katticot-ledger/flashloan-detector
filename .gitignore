@@ -1,0 +1,9 @@
+node_modules/
+.vite/
+deno.lock
+.env
+.vitest/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
