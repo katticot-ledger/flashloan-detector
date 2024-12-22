@@ -1,11 +1,49 @@
 import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
 import "https://deno.land/std@0.205.0/dotenv/load.ts";
 import { AAVE_CONTRACT_ADDRESS, FLASH_LOAN_ABI } from "./abi.ts";
-import { FlashLoanTransaction } from "./types.ts";
+import { FlashLoanTransaction, Transfer } from "./types.ts";
 
 const MAX_BLOCKS_PER_QUERY = 5;
 
 const provider = new ethers.providers.JsonRpcProvider(Deno.env.get("endpoint"));
+
+async function decodeTransfers(
+  receipt: ethers.providers.TransactionReceipt,
+): Promise<Transfer[]> {
+  const transfers: Transfer[] = [];
+
+  for (const log of receipt.logs) {
+    try {
+      if (
+        log.topics[0] === ethers.utils.id("Transfer(address,address,uint256)")
+      ) {
+        const from = ethers.utils.defaultAbiCoder.decode(
+          ["address"],
+          log.topics[1],
+        )[0];
+        const to = ethers.utils.defaultAbiCoder.decode(
+          ["address"],
+          log.topics[2],
+        )[0];
+        const value = ethers.utils.defaultAbiCoder.decode(
+          ["uint256"],
+          log.data,
+        )[0];
+
+        transfers.push({
+          from,
+          to,
+          value: value.toString(),
+          token: log.address,
+        });
+      }
+    } catch (error) {
+      console.error("Error parsing transfer:", error);
+    }
+  }
+
+  return transfers;
+}
 
 export async function fetchFlashLoanTransactions(
   startBlock: number,
@@ -29,15 +67,27 @@ export async function fetchFlashLoanTransactions(
     )
   ).flat();
 
-  return events.map((event) => ({
-    blockNumber: event.blockNumber,
-    txHash: event.transactionHash,
-    initiator: event.args.initiator,
-    target: event.args.target,
-    asset: event.args.asset,
-    amount: event.args.amount.toString(),
-    premium: event.args.premium.toString(),
-  }));
+  const transactions = await Promise.all(
+    events.map(async (event) => {
+      const receipt = await provider.getTransactionReceipt(
+        event.transactionHash,
+      );
+      const transfers = await decodeTransfers(receipt);
+
+      return {
+        blockNumber: event.blockNumber,
+        txHash: event.transactionHash,
+        initiator: event.args.initiator,
+        target: event.args.target,
+        asset: event.args.asset,
+        amount: event.args.amount.toString(),
+        premium: event.args.premium.toString(),
+        transfers,
+      };
+    }),
+  );
+
+  return transactions;
 }
 
 // Create ranges of blocks to respect the max block query limit
