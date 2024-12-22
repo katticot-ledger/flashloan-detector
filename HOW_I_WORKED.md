@@ -36,3 +36,6 @@ The Flash Loan Detector focuses on one of these attack types and learns from it 
 - Set up the project with TypeScript and dependencies.
 - Explored Euler Finance attack patterns.
 - Created a basic API to handle POST requests with block numbers.
+### 2
+- Implemented logic to fetch transactions from a given block.
+- Decoded transaction logs to identify flash loans.
