@@ -12,34 +12,44 @@ The Flash Loan Detector focuses on one of these attack types and learns from it 
 
 - Build an API endpoint to detect similar hacks in a given block.
 - The output will provide the following information:
-  - **YES/NO**: About the presence of an attack.
+  - **YES/NO**: Indicates the presence of an attack.
   - **Attacker Address**: Identifies the address of the attacker.
   - **Victim Address**: Identifies the address of the victim.
-  - **Amount Lost**: The total value lost in the attack.
+  - **Amount Lost**: Specifies the total value lost in the attack.
 
 ## Design Decisions
 
-- API Endpoint: `POST /detect-flash-loan`
-  - Input: Block number
-  - Output: List of suspicious transactions
-- Tools:
-  - Ethers.js
-  - QuickNode
-  - Deno
-  - Vitest
-  - SQLite Optional
+- **API Endpoint**: `POST /detect-flash-loan`
+  - **Input**: Block number
+  - **Output**: List of suspicious transactions
+- **Tools**:
+  - **Ethers.js**: For blockchain interaction.
+  - **QuickNode**: For querying blockchain data.
+  - **Deno**: For modern runtime support.
+  - **Vitest**: For testing the service.
+  - **SQLite (Optional)**: For lightweight storage and analysis.
 
 ## Workflow
 
-### 1
+### Step 1
 
-- Set up the project with TypeScript and dependencies.
+- Set up the project with TypeScript and required dependencies.
 - Explored Euler Finance attack patterns.
 - Created a basic API to handle POST requests with block numbers.
 
-### 2
+### Step 2
+
 - Implemented logic to fetch transactions from a given block.
 - Decoded transaction logs to identify flash loans.
- 
+
 #### Issue Discovered in Step 2
-QuickNode API limitation: To address that i am calling by batch of 5 blocks
+
+- **QuickNode API Limitation**: The API has limitations on the number of blocks queried per request.
+
+### Step 3
+
+- Analyzed transaction data to find patterns resembling the Euler Finance attack.
+  - **Identified Patterns**:
+    - A large detected flash loan.
+    - A significant number of token transfers.
+    - Several minted tokens
