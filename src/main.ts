@@ -56,5 +56,5 @@ export async function handleFlashLoanRequest(
 }
 if (import.meta.main) {
   const server = Deno.serve({ port: 8000 }, handleFlashLoanRequest);
-  console.log(`Server running on http://localhost:8000`);
+  console.log('Server running on http://localhost:8000');
 }

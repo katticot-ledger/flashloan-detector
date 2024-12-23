@@ -1,7 +1,8 @@
 import { ethers } from 'https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js';
+
 import 'https://deno.land/std@0.205.0/dotenv/load.ts';
 import { AAVE_CONTRACT_ADDRESS, FLASH_LOAN_ABI } from './abi.ts';
-import { FlashLoanTransaction, Transfer } from './types.ts';
+import type { FlashLoanTransaction, Transfer } from './types.ts';
 
 const MAX_BLOCKS_PER_QUERY = 5;
 

@@ -1,6 +1,6 @@
 import { analyzeFlashLoan } from './analyzer.ts';
 import { fetchFlashLoanTransactions } from './blockReader.ts';
-import { FlashLoanTransaction } from './types.ts';
+import type { FlashLoanTransaction } from './types.ts';
 
 export interface FlashLoanDetectionResponse {
   hasFlashLoan: boolean;

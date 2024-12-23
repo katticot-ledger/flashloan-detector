@@ -1,5 +1,6 @@
 import { ethers } from 'https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js';
-import { FlashLoanTransaction } from './types.ts';
+
+import type { FlashLoanTransaction } from './types.ts';
 
 export enum SuspiciousPattern {
   LargeFlashLoan = 'Large flash loan amount detected',
@@ -34,7 +35,9 @@ export async function analyzeFlashLoan(
   if (loanAmount.gt(LARGE_FLASH_LOAN_THRESHOLD)) {
     suspiciousPatterns.push(
       `${SuspiciousPattern.LargeFlashLoan}: ${
-        ethers.utils.formatEther(loanAmount)
+        ethers.utils.formatEther(
+          loanAmount,
+        )
       } ETH`,
     );
   } else {
