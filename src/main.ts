@@ -1,4 +1,4 @@
-import { detectFlashLoan } from "./flashDetector.ts";
+import { detectFlashLoan } from './flashDetector.ts';
 
 export interface DetectFlashLoanRequest {
   blockNumber: number;
@@ -10,16 +10,18 @@ export async function handleFlashLoanRequest(
   console.log(`[${new Date().toISOString()}] ${request.method} ${request.url}`);
 
   try {
-    if (request.method === "POST") {
+    if (request.method === 'POST') {
       const body = (await request.json()) as DetectFlashLoanRequest;
       console.log(
-        `[${new Date().toISOString()}] Received request for block ${body.blockNumber}`,
+        `[${
+          new Date().toISOString()
+        }] Received request for block ${body.blockNumber}`,
       );
 
       if (!body.blockNumber) {
         return new Response(
-          JSON.stringify({ error: "blockNumber is required" }),
-          { status: 400, headers: { "Content-Type": "application/json" } },
+          JSON.stringify({ error: 'blockNumber is required' }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } },
         );
       }
 
@@ -31,23 +33,24 @@ export async function handleFlashLoanRequest(
         }),
         {
           status: 200,
-          headers: { "Content-Type": "application/json" },
+          headers: { 'Content-Type': 'application/json' },
         },
       );
     }
 
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error(`[${new Date().toISOString()}] Error:`, error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+    const errorMessage = error instanceof Error
+      ? error.message
+      : 'Unknown error';
 
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 }

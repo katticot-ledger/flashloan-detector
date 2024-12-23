@@ -1,14 +1,14 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 // Helper function for making HTTP requests
 async function detectFlashLoanRequest(
   blockNumber: number | null,
 ): Promise<Response> {
-  const url = "http://localhost:8000/detect-flash-loan";
+  const url = 'http://localhost:8000/detect-flash-loan';
   return await fetch(url, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(blockNumber ? { blockNumber } : {}),
   });
@@ -19,16 +19,16 @@ const flashloanTransaction = [
   {
     blockNumber: 16818057,
     txHash:
-      "0x71a908be0bef6174bccc3d493becdfd28395d78898e355d451cb52f7bac38617",
-    initiator: "0x036cec1a199234fC02f72d29e596a09440825f1C",
-    target: "0x036cec1a199234fC02f72d29e596a09440825f1C",
-    asset: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-    amount: "300000000000",
-    premium: "270000000",
+      '0x71a908be0bef6174bccc3d493becdfd28395d78898e355d451cb52f7bac38617',
+    initiator: '0x036cec1a199234fC02f72d29e596a09440825f1C',
+    target: '0x036cec1a199234fC02f72d29e596a09440825f1C',
+    asset: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+    amount: '300000000000',
+    premium: '270000000',
   },
 ];
 
-describe("Flash Loan Detection API", () => {
+describe('Flash Loan Detection API', () => {
   // let server: any;
 
   beforeAll((done) => {
@@ -39,7 +39,7 @@ describe("Flash Loan Detection API", () => {
     // server.close();
   });
 
-  it("should handle valid request", async () => {
+  it('should handle valid request', async () => {
     const response = await detectFlashLoanRequest(12345);
     expect(response.status).toBe(200);
 
@@ -50,7 +50,7 @@ describe("Flash Loan Detection API", () => {
     });
   });
 
-  it("should detect flashloan transactions valid request", async () => {
+  it('should detect flashloan transactions valid request', async () => {
     const response = await detectFlashLoanRequest(16818057);
     expect(response.status).toBe(200);
 
@@ -61,13 +61,13 @@ describe("Flash Loan Detection API", () => {
     });
   });
 
-  it("should handle invalid request", async () => {
+  it('should handle invalid request', async () => {
     const response = await detectFlashLoanRequest(null);
     expect(response.status).toBe(400);
 
     const data = await response.json();
     expect(data).toEqual({
-      error: "blockNumber is required",
+      error: 'blockNumber is required',
     });
   });
 });

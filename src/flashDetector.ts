@@ -1,10 +1,38 @@
-import { fetchFlashLoanTransactions } from "./blockReader.ts";
-import { FlashLoanTransaction } from "./types.ts";
+import { analyzeFlashLoan } from './analyzer.ts';
+import { fetchFlashLoanTransactions } from './blockReader.ts';
+import { FlashLoanTransaction } from './types.ts';
+
+export interface FlashLoanDetectionResponse {
+  hasFlashLoan: boolean;
+  analyzedTransactions: {
+    transaction: FlashLoanTransaction;
+    status: string;
+    reasons: string[];
+  }[];
+}
 
 export async function detectFlashLoan(
   blockNumber: number,
-): Promise<[boolean, FlashLoanTransaction[]]> {
+): Promise<FlashLoanDetectionResponse> {
   const transactions = await fetchFlashLoanTransactions(blockNumber);
 
-  return [transactions.length > 0, transactions];
+  // Analyze each transaction
+  const analyzedTransactions = await Promise.all(
+    transactions.map(async (transaction) => {
+      const analysis = await analyzeFlashLoan(transaction);
+      return {
+        transaction,
+        ...analysis,
+      };
+    }),
+  );
+
+  const hasFlashLoan = analyzedTransactions.some(
+    (tx) => tx.status !== 'Normal',
+  );
+
+  return {
+    hasFlashLoan,
+    analyzedTransactions,
+  };
 }

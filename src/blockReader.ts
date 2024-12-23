@@ -1,11 +1,11 @@
-import { ethers } from "https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js";
-import "https://deno.land/std@0.205.0/dotenv/load.ts";
-import { AAVE_CONTRACT_ADDRESS, FLASH_LOAN_ABI } from "./abi.ts";
-import { FlashLoanTransaction, Transfer } from "./types.ts";
+import { ethers } from 'https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js';
+import 'https://deno.land/std@0.205.0/dotenv/load.ts';
+import { AAVE_CONTRACT_ADDRESS, FLASH_LOAN_ABI } from './abi.ts';
+import { FlashLoanTransaction, Transfer } from './types.ts';
 
 const MAX_BLOCKS_PER_QUERY = 5;
 
-const provider = new ethers.providers.JsonRpcProvider(Deno.env.get("endpoint"));
+const provider = new ethers.providers.JsonRpcProvider(Deno.env.get('endpoint'));
 
 async function decodeTransfers(
   receipt: ethers.providers.TransactionReceipt,
@@ -15,18 +15,18 @@ async function decodeTransfers(
   for (const log of receipt.logs) {
     try {
       if (
-        log.topics[0] === ethers.utils.id("Transfer(address,address,uint256)")
+        log.topics[0] === ethers.utils.id('Transfer(address,address,uint256)')
       ) {
         const from = ethers.utils.defaultAbiCoder.decode(
-          ["address"],
+          ['address'],
           log.topics[1],
         )[0];
         const to = ethers.utils.defaultAbiCoder.decode(
-          ["address"],
+          ['address'],
           log.topics[2],
         )[0];
         const value = ethers.utils.defaultAbiCoder.decode(
-          ["uint256"],
+          ['uint256'],
           log.data,
         )[0];
 
@@ -38,7 +38,7 @@ async function decodeTransfers(
         });
       }
     } catch (error) {
-      console.error("Error parsing transfer:", error);
+      console.error('Error parsing transfer:', error);
     }
   }
 
@@ -62,7 +62,7 @@ export async function fetchFlashLoanTransactions(
   const events = (
     await Promise.all(
       trimRanges.map(([from, to]) =>
-        aaveContract.queryFilter(aaveContract.filters.FlashLoan(), from, to),
+        aaveContract.queryFilter(aaveContract.filters.FlashLoan(), from, to)
       ),
     )
   ).flat();
@@ -105,15 +105,17 @@ async function displayFlashLoanTransactions(
   endBlock?: number,
 ) {
   console.log(
-    `Fetching transactions from block ${startBlock} to ${endBlock ?? "latest"}...`,
+    `Fetching transactions from block ${startBlock} to ${
+      endBlock ?? 'latest'
+    }...`,
   );
   const transactions = await fetchFlashLoanTransactions(startBlock, endBlock);
 
   if (transactions.length === 0) {
-    console.log("No flash loan transactions found.");
+    console.log('No flash loan transactions found.');
   } else {
     transactions.forEach((tx) => {
-      console.log("-".repeat(50));
+      console.log('-'.repeat(50));
       console.log(`Block: ${tx.blockNumber}`);
       console.log(`Transaction Hash: ${tx.txHash}`);
       console.log(`Initiator: ${tx.initiator}`);
