@@ -53,3 +53,6 @@ The Flash Loan Detector focuses on one of these attack types and learns from it 
     - A large detected flash loan.
     - A significant number of token transfers.
     - Several minted tokens
+#### Issue Discovered in Step 3
+Decimal are not the same between WBTC and ETH or ERC20
+FlashLoan are not done only with AAVE but also Balancer
