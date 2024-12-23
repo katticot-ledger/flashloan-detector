@@ -1,27 +1,21 @@
 import { ethers } from 'https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.esm.min.js';
+import {
+  type FlashLoanTransaction,
+  SuspiciousPattern,
+  TransactionAnalysis,
+  TransactionStatus,
+} from './types.ts';
 
-import type { FlashLoanTransaction } from './types.ts';
-
-export enum SuspiciousPattern {
-  LargeFlashLoan = 'Large flash loan amount detected',
-  HighTransferCount = 'High number of transfers detected',
-  MultipleLargeTransfers = 'Multiple large value transfers detected',
-  MultipleMints = 'Multiple minting operations detected',
-  MultipleBurns = 'Multiple burning operations detected',
-}
-
-function determineStatus(patternCount: number): string {
-  if (patternCount >= 2) return 'Very Suspicious';
-  if (patternCount === 1) return 'Suspicious';
-  return 'Normal';
+function determineStatus(patternCount: number): TransactionStatus {
+  if (patternCount > 2) return TransactionStatus.Critical;
+  if (patternCount === 2) return TransactionStatus.VerySuspicious;
+  if (patternCount === 1) return TransactionStatus.Suspicious;
+  return TransactionStatus.Normal;
 }
 
 export async function analyzeFlashLoan(
   transaction: FlashLoanTransaction,
-): Promise<{
-  status: string;
-  reasons: string[];
-}> {
+): Promise<TransactionAnalysis> {
   const suspiciousPatterns: string[] = [];
 
   // Threshold constants
@@ -34,16 +28,21 @@ export async function analyzeFlashLoan(
   const loanAmount = ethers.BigNumber.from(transaction.amount);
   if (loanAmount.gt(LARGE_FLASH_LOAN_THRESHOLD)) {
     suspiciousPatterns.push(
-      `${SuspiciousPattern.LargeFlashLoan}: ${
-        ethers.utils.formatEther(
-          loanAmount,
-        )
+      `${SuspiciousPattern.LargeFlashLoan}: ${ethers.utils.formatEther(
+        loanAmount,
+      )
       } ETH`,
     );
   } else {
     return {
-      status: determineStatus(suspiciousPatterns.length),
-      reasons: suspiciousPatterns,
+      transactionHash: transaction.txHash,
+      blockNumber: transaction.blockNumber,
+      analysis: [
+        {
+          status: determineStatus(suspiciousPatterns.length),
+          reasons: suspiciousPatterns,
+        },
+      ],
     };
   }
 
@@ -55,8 +54,14 @@ export async function analyzeFlashLoan(
     );
   } else {
     return {
-      status: determineStatus(suspiciousPatterns.length),
-      reasons: suspiciousPatterns,
+      transactionHash: transaction.txHash,
+      blockNumber: transaction.blockNumber,
+      analysis: [
+        {
+          status: determineStatus(suspiciousPatterns.length),
+          reasons: suspiciousPatterns,
+        },
+      ],
     };
   }
 
@@ -70,8 +75,14 @@ export async function analyzeFlashLoan(
     );
   } else {
     return {
-      status: determineStatus(suspiciousPatterns.length),
-      reasons: suspiciousPatterns,
+      transactionHash: transaction.txHash,
+      blockNumber: transaction.blockNumber,
+      analysis: [
+        {
+          status: determineStatus(suspiciousPatterns.length),
+          reasons: suspiciousPatterns,
+        },
+      ],
     };
   }
 
@@ -95,31 +106,42 @@ export async function analyzeFlashLoan(
 
     if (mintsFromNull.length > 2 || totalMinted.gt(LARGE_MINT_BURN_THRESHOLD)) {
       suspiciousPatterns.push(
-        `${SuspiciousPattern.MultipleMints}: ${mintsFromNull.length} operations, Total minted: ${
-          ethers.utils.formatEther(
-            totalMinted,
-          )
+        `${SuspiciousPattern.MultipleMints}: ${mintsFromNull.length} operations, Total minted: ${ethers.utils.formatEther(
+          totalMinted,
+        )
         } tokens`,
       );
     }
     if (burnsToNull.length > 2 || totalBurned.gt(LARGE_MINT_BURN_THRESHOLD)) {
       suspiciousPatterns.push(
-        `${SuspiciousPattern.MultipleBurns}: ${burnsToNull.length} operations, Total burned: ${
-          ethers.utils.formatEther(
-            totalBurned,
-          )
+        `${SuspiciousPattern.MultipleBurns}: ${burnsToNull.length} operations, Total burned: ${ethers.utils.formatEther(
+          totalBurned,
+        )
         } tokens`,
       );
     }
   } else {
     return {
-      status: determineStatus(suspiciousPatterns.length),
-      reasons: suspiciousPatterns,
+      transactionHash: transaction.txHash,
+      blockNumber: transaction.blockNumber,
+      analysis: [
+        {
+          status: determineStatus(suspiciousPatterns.length),
+          reasons: suspiciousPatterns,
+        },
+      ],
     };
   }
 
+  const finalStatus = determineStatus(suspiciousPatterns.length);
   return {
-    status: determineStatus(suspiciousPatterns.length),
-    reasons: suspiciousPatterns,
+    transactionHash: transaction.txHash,
+    blockNumber: transaction.blockNumber,
+    analysis: [
+      {
+        status: finalStatus,
+        reasons: suspiciousPatterns,
+      },
+    ],
   };
 }

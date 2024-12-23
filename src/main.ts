@@ -1,52 +1,45 @@
 import { detectFlashLoan } from './flashDetector.ts';
-
-export interface DetectFlashLoanRequest {
-  blockNumber: number;
-}
+import { FlashLoanDetectionRequest } from './types.ts';
 
 export async function handleFlashLoanRequest(
   request: Request,
 ): Promise<Response> {
-  console.log(`[${new Date().toISOString()}] ${request.method} ${request.url}`);
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${request.method} ${request.url}`);
 
   try {
     if (request.method === 'POST') {
-      const body = (await request.json()) as DetectFlashLoanRequest;
-      console.log(
-        `[${
-          new Date().toISOString()
-        }] Received request for block ${body.blockNumber}`,
-      );
+      const body = (await request.json()) as FlashLoanDetectionRequest;
 
-      if (!body.blockNumber) {
+      if (!body.blockNumberRange || body.blockNumberRange.length !== 2) {
         return new Response(
-          JSON.stringify({ error: 'blockNumber is required' }),
+          JSON.stringify({
+            error: 'blockNumberRange must be a tuple of [startBlock, endBlock]',
+          }),
           { status: 400, headers: { 'Content-Type': 'application/json' } },
         );
       }
 
-      const hasFlashLoan = await detectFlashLoan(body.blockNumber);
-      return new Response(
-        JSON.stringify({
-          blockNumber: body.blockNumber,
-          hasFlashLoan,
-        }),
-        {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        },
+      console.log(
+        `[${timestamp}] Received request for block range ${body.blockNumberRange[0]} to ${body.blockNumberRange[1]}`,
       );
+
+      const detectionResult = await detectFlashLoan(body);
+
+      return new Response(JSON.stringify(detectionResult), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed. Use POST.' }),
+      { status: 405, headers: { 'Content-Type': 'application/json' } },
+    );
   } catch (error) {
-    console.error(`[${new Date().toISOString()}] Error:`, error);
-    const errorMessage = error instanceof Error
-      ? error.message
-      : 'Unknown error';
+    console.error(`[${timestamp}] Error:`, error);
+    const errorMessage =
+      error instanceof Error ? error.message : 'An unknown error occurred';
 
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
@@ -54,6 +47,7 @@ export async function handleFlashLoanRequest(
     });
   }
 }
+
 if (import.meta.main) {
   const server = Deno.serve({ port: 8000 }, handleFlashLoanRequest);
   console.log('Server running on http://localhost:8000');

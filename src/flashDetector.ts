@@ -1,38 +1,52 @@
 import { analyzeFlashLoan } from './analyzer.ts';
 import { fetchFlashLoanTransactions } from './blockReader.ts';
-import type { FlashLoanTransaction } from './types.ts';
-
-export interface FlashLoanDetectionResponse {
-  hasFlashLoan: boolean;
-  analyzedTransactions: {
-    transaction: FlashLoanTransaction;
-    status: string;
-    reasons: string[];
-  }[];
-}
+import {
+  TransactionStatus,
+  type AttackDetection,
+  type AttackDetectionResponse,
+  type FlashLoanDetectionRequest,
+} from './types.ts';
 
 export async function detectFlashLoan(
-  blockNumber: number,
-): Promise<FlashLoanDetectionResponse> {
-  const transactions = await fetchFlashLoanTransactions(blockNumber);
+  request: FlashLoanDetectionRequest,
+): Promise<AttackDetectionResponse> {
+  const [startBlock, endBlock] = request.blockNumberRange.map(Number);
 
-  // Analyze each transaction
-  const analyzedTransactions = await Promise.all(
-    transactions.map(async (transaction) => {
-      const analysis = await analyzeFlashLoan(transaction);
-      return {
-        transaction,
-        ...analysis,
-      };
-    }),
+  const blockNumbers = Array.from(
+    { length: Number(endBlock) - Number(startBlock) + 1 },
+    (_, i) => Number(startBlock) + i,
   );
 
-  const hasFlashLoan = analyzedTransactions.some(
-    (tx) => tx.status !== 'Normal',
-  );
+  const detectionResponse: AttackDetectionResponse = {};
 
-  return {
-    hasFlashLoan,
-    analyzedTransactions,
-  };
+  for (const blockNumber of blockNumbers) {
+    const flashLoanTransactions = await fetchFlashLoanTransactions(blockNumber);
+
+    const detections = await Promise.all(
+      flashLoanTransactions.map(async (transaction) => {
+        const analysis = await analyzeFlashLoan(transaction);
+
+        const baseDetection: AttackDetection = {
+          transaction: {
+            ...transaction,
+            transfers: request.analysis ? transaction.transfers : [],
+          },
+          hasAttacks: analysis.analysis[0].status !== TransactionStatus.Normal,
+        };
+
+        if (request.analysis) {
+          return {
+            ...baseDetection,
+            analysis,
+          };
+        }
+
+        return baseDetection;
+      }),
+    );
+
+    detectionResponse[blockNumber.toString()] = detections;
+  }
+
+  return detectionResponse;
 }
