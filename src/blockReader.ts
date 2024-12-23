@@ -76,7 +76,8 @@ export async function fetchFlashLoanTransactions(
       const transfers = await decodeTransfers(receipt);
 
       // Determine currency and decimals based on the asset address
-      const isWBTC = event.args.asset.toLowerCase() === '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599';
+      const isWBTC = event.args.asset.toLowerCase() ===
+        '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599';
       const currency = isWBTC ? 'WBTC' : 'ETH';
       const decimals = isWBTC ? 8 : 18;
 
@@ -89,7 +90,7 @@ export async function fetchFlashLoanTransactions(
         amount: event.args.amount,
         premium: event.args.premium.toString(),
         transfers,
-        currency
+        currency,
       };
     }),
   );
@@ -112,7 +113,8 @@ async function displayFlashLoanTransactions(
   endBlock?: number,
 ) {
   console.log(
-    `Fetching transactions from block ${startBlock} to ${endBlock ?? 'latest'
+    `Fetching transactions from block ${startBlock} to ${
+      endBlock ?? 'latest'
     }...`,
   );
   const transactions = await fetchFlashLoanTransactions(startBlock, endBlock);
@@ -120,9 +122,9 @@ async function displayFlashLoanTransactions(
   if (transactions.length === 0) {
     console.log('No flash loan transactions found.');
   } else {
-
     transactions.forEach((tx) => {
-      const isWBTC = tx.asset.toLowerCase() === '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599';
+      const isWBTC =
+        tx.asset.toLowerCase() === '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599';
       const decimals = isWBTC ? 8 : 18;
       console.log('-'.repeat(50));
       console.log(`Block: ${tx.blockNumber}`);
@@ -130,8 +132,14 @@ async function displayFlashLoanTransactions(
       console.log(`Initiator: ${tx.initiator}`);
       console.log(`Target: ${tx.target}`);
       console.log(`Asset: ${tx.asset}`);
-      console.log(`Amount: ${ethers.utils.formatUnits(tx.amount, decimals)} ${tx.currency}`);
-      console.log(`Premium: ${ethers.utils.formatUnits(tx.premium)} ${tx.currency}`);
+      console.log(
+        `Amount: ${
+          ethers.utils.formatUnits(tx.amount, decimals)
+        } ${tx.currency}`,
+      );
+      console.log(
+        `Premium: ${ethers.utils.formatUnits(tx.premium)} ${tx.currency}`,
+      );
     });
   }
 }
@@ -146,4 +154,3 @@ async function main() {
 if (import.meta.main) {
   main();
 }
-

@@ -21,7 +21,9 @@ export async function handleFlashLoanRequest(
       }
 
       console.log(
-        `[${timestamp}] Received request for block range ${body.blockNumberRange[0]} to ${body.blockNumberRange[1]}`,
+        `[${timestamp}] Received request for block range ${
+          body.blockNumberRange[0]
+        } to ${body.blockNumberRange[1]}`,
       );
 
       const detectionResult = await detectFlashLoan(body);
@@ -38,8 +40,9 @@ export async function handleFlashLoanRequest(
     );
   } catch (error) {
     console.error(`[${timestamp}] Error:`, error);
-    const errorMessage =
-      error instanceof Error ? error.message : 'An unknown error occurred';
+    const errorMessage = error instanceof Error
+      ? error.message
+      : 'An unknown error occurred';
 
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,

@@ -1,10 +1,10 @@
 import { analyzeFlashLoan } from './analyzer.ts';
 import { fetchFlashLoanTransactions } from './blockReader.ts';
 import {
-  TransactionStatus,
   type AttackDetection,
   type AttackDetectionResponse,
   type FlashLoanDetectionRequest,
+  TransactionStatus,
 } from './types.ts';
 
 export async function detectFlashLoan(

@@ -28,9 +28,10 @@ export async function analyzeFlashLoan(
   const loanAmount = ethers.BigNumber.from(transaction.amount);
   if (loanAmount.gt(LARGE_FLASH_LOAN_THRESHOLD)) {
     suspiciousPatterns.push(
-      `${SuspiciousPattern.LargeFlashLoan}: ${ethers.utils.formatEther(
-        loanAmount,
-      )
+      `${SuspiciousPattern.LargeFlashLoan}: ${
+        ethers.utils.formatEther(
+          loanAmount,
+        )
       } ETH`,
     );
   } else {
@@ -106,17 +107,19 @@ export async function analyzeFlashLoan(
 
     if (mintsFromNull.length > 2 || totalMinted.gt(LARGE_MINT_BURN_THRESHOLD)) {
       suspiciousPatterns.push(
-        `${SuspiciousPattern.MultipleMints}: ${mintsFromNull.length} operations, Total minted: ${ethers.utils.formatEther(
-          totalMinted,
-        )
+        `${SuspiciousPattern.MultipleMints}: ${mintsFromNull.length} operations, Total minted: ${
+          ethers.utils.formatEther(
+            totalMinted,
+          )
         } tokens`,
       );
     }
     if (burnsToNull.length > 2 || totalBurned.gt(LARGE_MINT_BURN_THRESHOLD)) {
       suspiciousPatterns.push(
-        `${SuspiciousPattern.MultipleBurns}: ${burnsToNull.length} operations, Total burned: ${ethers.utils.formatEther(
-          totalBurned,
-        )
+        `${SuspiciousPattern.MultipleBurns}: ${burnsToNull.length} operations, Total burned: ${
+          ethers.utils.formatEther(
+            totalBurned,
+          )
         } tokens`,
       );
     }
