@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { FlashLoanDetectionRequest } from './types';
 
-// Helper function for making HTTP requests
 async function detectFlashLoanRequest(
-  blockNumber: number | null,
+  payload: FlashLoanDetectionRequest,
 ): Promise<Response> {
   const url = 'http://localhost:8000/detect-flash-loan';
   return await fetch(url, {
@@ -10,64 +10,88 @@ async function detectFlashLoanRequest(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(blockNumber ? { blockNumber } : {}),
+    body: JSON.stringify(payload),
   });
 }
 
-// flashloan on block 16818057
-const flashloanTransaction = [
-  {
-    blockNumber: 16818057,
-    txHash:
-      '0x71a908be0bef6174bccc3d493becdfd28395d78898e355d451cb52f7bac38617',
-    initiator: '0x036cec1a199234fC02f72d29e596a09440825f1C',
-    target: '0x036cec1a199234fC02f72d29e596a09440825f1C',
-    asset: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
-    amount: '300000000000',
-    premium: '270000000',
-  },
-];
-
 describe('Flash Loan Detection API', () => {
-  // let server: any;
-
   beforeAll((done) => {
+    //TODO add server start here
     // server = createServer(app).listen(8000, done);
   });
 
   afterAll(() => {
+    //TODO add server stop
     // server.close();
   });
 
-  it('should handle valid request', async () => {
-    const response = await detectFlashLoanRequest(12345);
+
+  it('should return 405 for unsupported HTTP methods', async () => {
+    const url = 'http://localhost:8000/detect-flash-loan';
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    expect(response.status).toBe(405);
+
+    const data = await response.json();
+    expect(data).toEqual({
+      error: 'Method not allowed. Use POST.',
+    });
+  });
+
+  it('should handle valid request with no flash loans', async () => {
+    const payload: FlashLoanDetectionRequest = {
+      analysis: true,
+      blockNumberRange: ['12345', '12350'],
+    };
+
+    const response = await detectFlashLoanRequest(payload);
     expect(response.status).toBe(200);
 
     const data = await response.json();
     expect(data).toEqual({
-      blockNumber: 12345,
-      hasFlashLoan: [false, []],
+      '12345': [],
+      '12346': [],
+      '12347': [],
+      '12348': [],
+      '12349': [],
+      '12350': [],
     });
   });
 
-  it('should detect flashloan transactions valid request', async () => {
-    const response = await detectFlashLoanRequest(16818057);
+  it('should detect flash loan transactions for a valid block range', async () => {
+    const payload: FlashLoanDetectionRequest = {
+      analysis: true,
+      blockNumberRange: ['16817996', '16817996'],
+    };
+
+    const response = await detectFlashLoanRequest(payload);
     expect(response.status).toBe(200);
 
     const data = await response.json();
-    expect(data).toEqual({
-      blockNumber: 16818057,
-      hasFlashLoan: [true, flashloanTransaction],
+
+    // Check if `hasAttacks` is true for block 16817996
+    expect(data['16817996']).toBeDefined();
+    const detectedTransactions = data['16817996'];
+    expect(detectedTransactions.length).toBeGreaterThan(0);
+
+    detectedTransactions.forEach((transaction) => {
+      expect(transaction.hasAttacks).toBe(true);
     });
   });
-
   it('should handle invalid request', async () => {
-    const response = await detectFlashLoanRequest(null);
+    const payload: Partial<FlashLoanDetectionRequest> = {}; // Invalid payload
+
+    const response = await detectFlashLoanRequest(payload as FlashLoanDetectionRequest);
     expect(response.status).toBe(400);
 
     const data = await response.json();
     expect(data).toEqual({
-      error: 'blockNumber is required',
+      error: 'blockNumberRange must be a tuple of [startBlock, endBlock]',
     });
   });
 });
